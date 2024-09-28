@@ -1,0 +1,27 @@
+CREATE OR REPLACE PROCEDURE check_tables_existence AS
+BEGIN
+  -- Drop the temporary table if it exists
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE temp_table_existence';
+  EXCEPTION
+    WHEN OTHERS THEN
+      NULL; -- Table doesn't exist, ignore the error
+  END;
+
+  -- Create the temporary table
+  EXECUTE IMMEDIATE 'CREATE GLOBAL TEMPORARY TABLE temp_table_existence (
+    table_name VARCHAR2(100),
+    exists_flag VARCHAR2(20)
+  ) ON COMMIT PRESERVE ROWS';
+
+  -- Check existence and insert results
+  EXECUTE IMMEDIATE 'INSERT INTO temp_table_existence (table_name, exists_flag)
+             SELECT t.table_name,
+                    CASE 
+                      WHEN u.table_name IS NOT NULL THEN ''Exists''
+                      ELSE ''Does not exist''
+                    END
+             FROM PRODUCT_ORS.TABLES_TO_CHECK t
+             LEFT JOIN user_tables u ON UPPER(u.table_name) = UPPER(t.table_name)';
+END;
+/
