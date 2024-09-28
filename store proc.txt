@@ -1,0 +1,32 @@
+CREATE OR REPLACE PROCEDURE check_tables_existence AS
+  TYPE table_list_type IS TABLE OF VARCHAR2(100);
+  table_list table_list_type := table_list_type('TABLE1', 'TABLE2', 'TABLE3', 'TABLE4', 'TABLE5');
+  table_exists NUMBER;
+BEGIN
+  -- Drop the temporary table if it exists
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE temp_table_existence';
+  EXCEPTION
+    WHEN OTHERS THEN
+      NULL; -- Table doesn't exist, ignore the error
+  END;
+
+  -- Create the temporary table
+  EXECUTE IMMEDIATE 'CREATE GLOBAL TEMPORARY TABLE temp_table_existence (
+    table_name VARCHAR2(100),
+    exists_flag VARCHAR2(20)
+  ) ON COMMIT PRESERVE ROWS';
+
+  FOR i IN 1..table_list.COUNT LOOP
+    SELECT COUNT(*) INTO table_exists
+    FROM user_tables
+    WHERE UPPER(table_name) = UPPER(table_list(i));
+    
+    IF table_exists > 0 THEN
+      INSERT INTO temp_table_existence VALUES (table_list(i), 'Exists');
+    ELSE
+      INSERT INTO temp_table_existence VALUES (table_list(i), 'Does not exist');
+    END IF;
+  END LOOP;
+END;
+/
