@@ -10,3 +10,46 @@ INSERT INTO tables_to_check (table_name) VALUES ('TABLE4');
 INSERT INTO tables_to_check (table_name) VALUES ('TABLE5');
 
 COMMIT;
+
+
+---------create store procedure--------
+CREATE OR REPLACE PROCEDURE check_tables_existence AS
+BEGIN
+  -- Drop the temporary table if it exists
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE temp_table_existence';
+  EXCEPTION
+    WHEN OTHERS THEN
+      NULL; -- Table doesn't exist, ignore the error
+  END;
+
+  -- Create the temporary table
+  EXECUTE IMMEDIATE 'CREATE GLOBAL TEMPORARY TABLE temp_table_existence (
+    table_name VARCHAR2(100),
+    exists_flag VARCHAR2(20)
+  ) ON COMMIT PRESERVE ROWS';
+
+  -- Check existence and insert results
+  FOR rec IN (SELECT table_name FROM tables_to_check) LOOP
+    INSERT INTO temp_table_existence (table_name, exists_flag)
+    SELECT rec.table_name,
+           CASE 
+             WHEN COUNT(*) > 0 THEN 'Exists'
+             ELSE 'Does not exist'
+           END
+    FROM user_tables
+    WHERE UPPER(table_name) = UPPER(rec.table_name)
+    GROUP BY rec.table_name;
+  END LOOP;
+END;
+/
+
+
+---check sp----------
+
+BEGIN
+  check_tables_existence;
+END;
+/
+
+SELECT * FROM temp_table_existence;
