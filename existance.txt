@@ -1,0 +1,21 @@
+DECLARE
+  TYPE table_list_type IS TABLE OF VARCHAR2(100);
+  table_list table_list_type := table_list_type('TABLE1', 'TABLE2', 'TABLE3', 'TABLE4', 'TABLE5');
+  table_exists NUMBER;
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Table Existence Report');
+  DBMS_OUTPUT.PUT_LINE('------------------------');
+  
+  FOR i IN 1..table_list.COUNT LOOP
+    SELECT COUNT(*) INTO table_exists
+    FROM user_tables
+    WHERE table_name = table_list(i);
+    
+    IF table_exists > 0 THEN
+      DBMS_OUTPUT.PUT_LINE(table_list(i) || ': Exists');
+    ELSE
+      DBMS_OUTPUT.PUT_LINE(table_list(i) || ': Does not exist');
+    END IF;
+  END LOOP;
+END;
+/
