@@ -1,32 +1,12 @@
-CREATE GLOBAL TEMPORARY TABLE temp_table_existence (
-  table_name VARCHAR2(100),
-  exists_flag VARCHAR2(20)
-) ON COMMIT PRESERVE ROWS;
+CREATE TABLE tables_to_check (
+    table_name VARCHAR2(100)
+);
 
-DECLARE
-  TYPE table_list_type IS TABLE OF VARCHAR2(100);
-  table_list table_list_type := table_list_type('TABLE1', 'TABLE2', 'TABLE3', 'TABLE4', 'TABLE5');
-  table_exists NUMBER;
-  v_owner VARCHAR2(100);
-BEGIN
-  -- Get the current schema name
-  SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') INTO v_owner FROM DUAL;
+-- Insert the tables you want to check
+INSERT INTO tables_to_check (table_name) VALUES ('TABLE1');
+INSERT INTO tables_to_check (table_name) VALUES ('TABLE2');
+INSERT INTO tables_to_check (table_name) VALUES ('TABLE3');
+INSERT INTO tables_to_check (table_name) VALUES ('TABLE4');
+INSERT INTO tables_to_check (table_name) VALUES ('TABLE5');
 
-  FOR i IN 1..table_list.COUNT LOOP
-    SELECT COUNT(*) INTO table_exists
-    FROM ALL_TABLES
-    WHERE TABLE_NAME = UPPER(table_list(i))
-    AND OWNER = v_owner;
-    
-    IF table_exists > 0 THEN
-      INSERT INTO temp_table_existence VALUES (table_list(i), 'Exists');
-    ELSE
-      INSERT INTO temp_table_existence VALUES (table_list(i), 'Does not exist');
-    END IF;
-  END LOOP;
-END;
-/
-
-SELECT * FROM temp_table_existence;
-
-DROP TABLE temp_table_existence;
+COMMIT;
