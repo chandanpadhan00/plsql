@@ -1,0 +1,5 @@
+=IFERROR(
+  INDEX($B$3:$P$43, ROW()-ROW($B$140)+1, COLUMN()-COLUMN($B$140)+1) /
+  INDEX($B$48:$P$88, ROW()-ROW($B$140)+1, COLUMN()-COLUMN($B$140)+1)
+  - 1,
+"")
